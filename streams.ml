@@ -12,7 +12,7 @@ and 'a tr = Stem of 'a * 'a tree * 'a tree ;;
  * at the root of the tree *)
 
 let headt (t: 'a tree) : 'a =
-  failwith "Unimplemented"
+  let Stem(h,_,_) = t () in h
 ;;
 
 (*>* Problem 2.1.b *>*)
@@ -20,11 +20,11 @@ let headt (t: 'a tree) : 'a =
  * left and right subtrees respectively *)
 
 let ltail (t: 'a tree) : 'a tree =
-  failwith "Unimplemented"
+  let Stem(_,l,_) = t () in l
 ;;
 
 let rtail (t: 'a tree) : 'a tree =
-  failwith "Unimplemented"
+  let Stem(_,_,r) = t () in r
 ;;
 
 (*>* Problem 2.1.c *>*)
@@ -32,7 +32,7 @@ let rtail (t: 'a tree) : 'a tree =
  * over the given treestream *)
 
 let rec mapt (f: 'a -> 'b) (t: 'a tree) : 'b tree =
-  failwith "Unimplemented"
+  fun () -> Stem(f (headt t),mapt f (ltail t),mapt f (rtail t))
 ;;
 
 (*>* Problem 2.1.d *>*)
@@ -42,14 +42,14 @@ let rec mapt (f: 'a -> 'b) (t: 'a tree) : 'b tree =
  * the corresponding value in "zipt f t1 t2" should be "f x1 x2" *)
 
 let rec zipt (f: 'a -> 'b -> 'c) (t1: 'a tree) (t2: 'b tree) : 'c tree =
-  failwith "Unimplemented"
+  fun () -> Stem(f (headt t1)(headt t2),zipt f (ltail t1) (ltail t2),zipt f (rtail t1) (rtail t2))
 ;;
 
 (* Define a treestream of all ones *)
 
 (*>* Problem 2.1.e *>*)
 let rec onest () =
-  failwith "Unimplemented"
+  Stem(1,onest,onest)
 ;;
 
 (* Define a treestream in which each positive natural number appears
@@ -68,7 +68,7 @@ let rec onest () =
 
 (*>* Problem 2.1.f *>*)
 let rec treenats () =
-  failwith "Unimplemented"
+  Stem(1,(mapt (fun x -> 2*x) (treenats)),(mapt (fun x -> 2*x + 1) (treenats)))
 ;;
 
 (***************** Using the Lazy module ******************)
