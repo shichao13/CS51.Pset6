@@ -5,7 +5,7 @@
  *
  * (Leave blank if you are working alone)
  * Partner 2's name: Allen Chen
- * Partner 2's code.seas account: _______
+ * Partner 2's code.seas account: allenchen
  *)
 
 open Core.Std
