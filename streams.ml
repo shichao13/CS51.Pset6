@@ -91,20 +91,20 @@ let rec ones = Cons(1, lazy(ones));;
 (* Implement the head function *)
 
 let head (s:'a stream) : 'a =
-  failwith "Unimplemented"
+  let Cons(h,_) = s in h
 ;;
 
 (*>* Problem 2.2.b *>*)
 (* Implement map *)
 
 let rec map (f:'a -> 'b) (s:'a stream) : 'b stream =
-  failwith "Unimplemented"
+  let Cons(h,t) = s in Cons(f h, lazy(map f (Lazy.force t)))
 ;;
 
 (*>* Problem 2.2.c *>*)
 (* Define nats *)
 
-let rec nats = failwith "Unimplemented" ;;
+let rec nats = Cons(1, lazy(map (fun x -> x+1) nats));;
 
 (*>* Problem 2.2.d *>*)
 (* Write a function nth, which returns the nth element of a
@@ -112,7 +112,9 @@ let rec nats = failwith "Unimplemented" ;;
  * words, "nth 0 s" should be equivalent to "head s". *)
 
 let rec nth (n:int) (s:'a stream) : 'a =
-  failwith "Unimplemented"
+  match n with
+  |0 -> head s
+  |_ -> nth (n-1) (let Cons(_,t) = s in Lazy.force t)
 ;;
 
 (*>* Problem 2.2.e *>*)
@@ -122,8 +124,14 @@ let rec nth (n:int) (s:'a stream) : 'a =
  * function. NOTE: This is not a simple merge function. You must
  * REMOVE DUPLICATES *)
 
-let merge (s1:int stream) (s2:int stream) : int stream =
-  failwith "Unimplemented"
+let rec merge (s1:int stream) (s2:int stream) : int stream =
+  let Cons(h1,lazy t1) = s1 in 
+  let Cons(h2,lazy t2) = s2 in
+    if h1=h2
+    then Cons(h1, lazy(merge t1 t2))
+    else if h1<h2
+    then Cons(h1, lazy(merge t1 s2))
+    else Cons(h2, lazy(merge s1 t2)) 
 ;;
 
 (*>* Problem 2.2.f *>*)
@@ -131,14 +139,17 @@ let merge (s1:int stream) (s2:int stream) : int stream =
  * if we were to run "merge ones ones"? Answer within the comment. *)
 
 (*
- *  Answer:
+ *  Answer: In order for merge to work, the two int streams inputted into the
+            function must be finite. If either of them is infinite like the
+            "merge ones ones" case, then the merge function will end up in an
+            infinite loop.
  *)
 
 (*>* Problem 2.2.g *>*)
 (* Write a function "scale", which takes an integer "n" and an int
  * stream "s", and multiplies each element of "s" by "n". *)
 
-let scale n = failwith "Unimplemented" ;;
+let scale n = map (fun x -> n*x);;
 
 (*>* Problem 2.2.h *>*)
 (* Suppose we wish to create a stream of the positive integers "n" in
@@ -162,10 +173,10 @@ let scale n = failwith "Unimplemented" ;;
    give a simple definition for "selectivestream". This can be done quite
    elegantly. *)
 
-let rec selectivestream = failwith "Unimplemented" ;;
+let rec selectivestream = Cons(1, lazy(merge (scale 3 nats) (scale 5 nats))) ;;
 
 (*>* Problem 2.3 *>*)
 (* Please give us an honest estimate of how long this part took
  * you to complete.  We care about your responses and will use
  * them to help guide us in creating future assignments. *)
-let minutes_spent : int = -1
+let minutes_spent : int = 180
