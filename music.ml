@@ -123,8 +123,13 @@ let shift_start (by : float) (str : event stream) =
  * since you will call both the inner and outer functions at some point. *)
 let rec list_to_stream (lst : obj list) : event stream =
   let rec list_to_stream_rec nlst =
-    failwith "Unimplemented"
+    match nlst with
+    | [] -> list_to_stream lst
+    (* CAN I INITIALIZE EVERYTHING AT 0 AND THEN SHIFT? *)
+    | Note(p,d,v)::tl -> Cons(Tone(0.,p,v),Cons(Stop(d,p)),list_to_stream_rec tl)
+    | Rest(d)::tl -> 
   in list_to_stream_rec lst
+;;
 
 (* You might find this small helper function, well... helpful. *)
 let time_of_event (e : event) : float =
@@ -136,7 +141,12 @@ let time_of_event (e : event) : float =
 (* Write a function pair that merges two event streams. Events that happen
  * earlier in time should appear earlier in the merged stream. *)
 let rec pair (a : event stream) (b : event stream) : event stream =
-  failwith "Unimplemented"
+  let Cons(h1,t1) = a () in 
+  let Cons(h2,t2) = b () in
+    if time_of_event h1 <= time_of_event h2
+    then fun () -> Cons(h1, pair t1 b)
+    else fun () -> Cons(h2, pair a t2)
+;;
 
 (*>* Problem 3.3 *>*)
 (* Write a function transpose that takes an event stream and moves each pitch
@@ -152,7 +162,12 @@ let transpose_pitch (p, oct) half_steps =
     else (int_to_p (newp mod 12), oct + (newp / 12))
 
 let transpose (str : event stream) (half_steps : int) : event stream =
-    failwith "Unimplemented"
+  map (fun x ->
+    match x with
+    | Tone(t,p,v) -> Tone(t, transpose_pitch p half_steps, v)
+    | Stop(t,p) -> Stop(t, transpose_pitch p half_steps)
+    ) str
+;;
 
 (* Some functions for convenience. *)
 let quarter pt = Note(pt,0.25,60);;
