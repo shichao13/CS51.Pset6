@@ -122,13 +122,13 @@ let shift_start (by : float) (str : event stream) =
  * list but keep the original list around as lst. Both need to be recursive,
  * since you will call both the inner and outer functions at some point. *)
 let rec list_to_stream (lst : obj list) : event stream =
-  let rec list_to_stream_rec nlst =
+  (* start keeps track of where the last note ended. *)
+  let rec list_to_stream_rec (nlst : obj list) (start : float) =
     match nlst with
     | [] -> list_to_stream lst
-    (* CAN I INITIALIZE EVERYTHING AT 0 AND THEN SHIFT? *)
-    | Note(p,d,v)::tl -> Cons(Tone(0.,p,v),Cons(Stop(d,p)),list_to_stream_rec tl)
-    | Rest(d)::tl -> 
-  in list_to_stream_rec lst
+    | Note(p,d,v)::tl -> fun () -> Cons(Tone(start,p,v), fun () -> Cons(Stop(start +. d,p),list_to_stream_rec tl (start +. d)))
+    | Rest(d)::tl -> list_to_stream_rec tl (start +. d)
+  in list_to_stream_rec lst 0.
 ;;
 
 (* You might find this small helper function, well... helpful. *)
@@ -178,7 +178,7 @@ let eighth pt = Note(pt,0.125,60);;
  * the functions above. *)
 (* Start off with some scales. We've done these for you.*)
 
-(*
+
 let scale1 = list_to_stream (List.map ~f:quarter [(C,3);(D,3);(E,3);(F,3);(G,3);
                                             (A,3);(B,3);(C,4)]);;
 
@@ -187,12 +187,12 @@ let scale2 = transpose scale1 7;;
 let scales = pair scale1 scale2;;
 
 output_midi "scale.mid" 32 scales;;
-*)
+
 
 (*>* Problem 3.4 *>*)
 (* Then with just three lists ... *)
 
-(*
+
 let bass = list_to_stream (List.map ~f:quarter [(D,3);(A,2);(B,2);(Gb,2);(G,2);
                                              (D,2);(G,2);(A,2)]);;
 
@@ -203,7 +203,7 @@ let fast = [(D,3);(Gb,3);(A,3);(G,3);(Gb,3);(D,3);(Gb,3);(E,3);(D,3);(B,2);
 
 let melody = list_to_stream ((List.map ~f:quarter slow) @
                 (List.map ~f:eighth fast));;
-*)
+
 
 (* ...and the functions we defined, produce (a small part of) a great piece of
  * music. The piece should be four streams merged: one should be the bass
@@ -214,9 +214,9 @@ let melody = list_to_stream ((List.map ~f:quarter slow) @
  * bass and melody. Uncomment the definitions above and the lines below when
  * you're done. Run the program to hear the beautiful music. *)
 
-(* let canon = failwith "Unimplemented";;
+let canon = pair (pair (pair bass (shift_start 2.0 melody)) (shift_start 4.0 melody)) (shift_start 6.0 melody);;
 
-output_midi "canon.mid" 176 canon;; *)
+output_midi "canon.mid" 176 canon;; 
 
 (* Some other musical parts for you to play with. *)
 
