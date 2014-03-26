@@ -121,15 +121,16 @@ let shift_start (by : float) (str : event stream) =
  * Hint: Use a recursive helper function as defined, which will change the
  * list but keep the original list around as lst. Both need to be recursive,
  * since you will call both the inner and outer functions at some point. *)
+
 let rec list_to_stream (lst : obj list) : event stream =
-  (* start keeps track of where the last note ended. *)
-  let rec list_to_stream_rec (nlst : obj list) (start : float) =
+  let rec list_to_stream_rec (nlst : obj list) =
     match nlst with
     | [] -> list_to_stream lst
-    | Note(p,d,v)::tl -> fun () -> Cons(Tone(start,p,v), fun () -> Cons(Stop(start +. d,p),list_to_stream_rec tl (start +. d)))
-    | Rest(d)::tl -> list_to_stream_rec tl (start +. d)
-  in list_to_stream_rec lst 0.
+    | Note(p,d,v)::tl -> fun () -> Cons(Tone(0.,p,v), fun () -> Cons(Stop(d,p),list_to_stream_rec tl))
+    | Rest(d)::tl -> list_to_stream_rec tl
+  in list_to_stream_rec lst
 ;;
+
 
 (* You might find this small helper function, well... helpful. *)
 let time_of_event (e : event) : float =
@@ -144,8 +145,8 @@ let rec pair (a : event stream) (b : event stream) : event stream =
   let Cons(h1,t1) = a () in 
   let Cons(h2,t2) = b () in
     if time_of_event h1 <= time_of_event h2
-    then fun () -> Cons(h1, pair t1 b)
-    else fun () -> Cons(h2, pair a t2)
+    then fun () -> Cons(h1, pair (shift_start (-.(time_of_event h1)) b)  t1)
+    else fun () -> Cons(h2, pair (shift_start (-.(time_of_event h2)) a)  t2)
 ;;
 
 (*>* Problem 3.3 *>*)
@@ -161,12 +162,12 @@ let transpose_pitch (p, oct) half_steps =
       else (int_to_p ((newp mod 12) + 12), oct - 1 + (newp / 12))
     else (int_to_p (newp mod 12), oct + (newp / 12))
 
-let transpose (str : event stream) (half_steps : int) : event stream =
+let transpose (strm : event stream) (half_steps : int) : event stream =
   map (fun x ->
     match x with
     | Tone(t,p,v) -> Tone(t, transpose_pitch p half_steps, v)
     | Stop(t,p) -> Stop(t, transpose_pitch p half_steps)
-    ) str
+    ) strm
 ;;
 
 (* Some functions for convenience. *)
@@ -244,4 +245,4 @@ let part4 = list_to_stream [Rest(0.25); Note((G,3),0.25,60);
 (* Please give us an honest estimate of how long this part took
  * you to complete.  We care about your responses and will use
  * them to help guide us in creating future assignments. *)
-let minutes_spent : int = -1
+let minutes_spent : int = 330
