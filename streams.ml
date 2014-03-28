@@ -71,6 +71,27 @@ let rec treenats () =
   Stem(1,(mapt (fun x -> 2*x) (treenats)),(mapt (fun x -> 2*x + 1) (treenats)))
 ;;
 
+(* Testing function for 2.1.f - we weren't sure if it worked *)
+let rec lefttest_treenats (toprint : int tr) (max : int) (counter : int) : unit =
+  if max < 0 then () else
+    match toprint with
+    | Stem(a,l,r) -> 
+      let _ = assert (a = counter) in
+      lefttest_treenats (l ()) (max-1) (counter*2);;
+
+let rec righttest_treenats (toprint : int tr) (max : int) (counter : int) : unit =
+  if max < 0 then () else
+    match toprint with
+    | Stem(a,l,r) -> 
+      let _ = assert(a = counter) in
+      righttest_treenats (r ()) (max-1) ((counter*2)+1);;
+
+let _ = lefttest_treenats (treenats ()) 10 1
+;;
+
+let _ = righttest_treenats (treenats ()) 10 1
+;;
+
 (***************** Using the Lazy module ******************)
 (* Here we provide an alternate implementation of streams using
  * OCaml's lazy module. We recommend that you explore the
